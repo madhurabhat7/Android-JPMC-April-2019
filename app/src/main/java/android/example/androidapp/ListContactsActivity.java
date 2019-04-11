@@ -1,7 +1,9 @@
 package android.example.androidapp;
 
+import android.content.Intent;
 import android.example.androidapp.adapters.ContactListAdpater;
 import android.example.androidapp.model.Contact;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -33,10 +35,15 @@ public class ListContactsActivity extends AppCompatActivity {
 
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+            public boolean onItemLongClick(AdapterView<?> parent,
+                                                View view, int position, long id) {
+                Contact contact = contacts.get(position);
+                String mobileNo = contact.getMobileNo();
 
-                Contact contact =  contacts.get(position);
-                Toast.makeText(ListContactsActivity.this, "Hello: " + contact.getMobileNo(), Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(Intent.ACTION_DIAL);
+                intent.setData(Uri.parse("tel:" + mobileNo));
+                startActivity(intent);
+
                 return true;
             }
         });

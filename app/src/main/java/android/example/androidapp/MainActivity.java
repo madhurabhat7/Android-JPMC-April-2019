@@ -1,7 +1,12 @@
 package android.example.androidapp;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,6 +15,10 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
+
+
+    MessageBroadcastReceiver messageBroadcastReceiver;
+    AirplaneModeReceiver airplaneModeReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +31,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         Log.w("Lifecycle", "MainActivity onStart");
+
+        messageBroadcastReceiver = new MessageBroadcastReceiver();
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver
+                        (messageBroadcastReceiver,
+                                new IntentFilter("DemoServiceCompleted"));
+
+        airplaneModeReceiver = new AirplaneModeReceiver();
+
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        registerReceiver(airplaneModeReceiver, filter);
     }
 
     @Override
@@ -40,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         Log.w("Lifecycle", "MainActivity onStop");
+        LocalBroadcastManager.getInstance(this)
+                        .unregisterReceiver(messageBroadcastReceiver);
+        unregisterReceiver(airplaneModeReceiver);
     }
 
     @Override
@@ -78,5 +102,32 @@ public class MainActivity extends AppCompatActivity {
         intent.setData(Uri.parse("http://google.com"));
         startActivity(intent);
     }
+
+    public void callService(View view){
+
+        Intent intent = new Intent(this, DemoService.class);
+        startService(intent);
+    }
+
+    class MessageBroadcastReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            String result = intent.getStringExtra("Result");
+            Toast.makeText(context, result, Toast.LENGTH_LONG).show();
+
+        }
+    }
+    class AirplaneModeReceiver extends  BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(context, "Airplane Mode Changed", Toast.LENGTH_LONG).show();
+            Log.w("AirplaneModeReceiver", "Airplane Mode Changed");
+        }
+    }
+
+
 
 }
